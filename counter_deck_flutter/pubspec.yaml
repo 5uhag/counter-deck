@@ -1,5 +1,5 @@
-name: lite_deck_flutter
-description: A soundboard Flutter app for Lite-Deck
+name: counter_deck_flutter
+description: A soundboard Flutter app for Counter-Deck
 publish_to: 'none'
 version: 1.0.0+1
 

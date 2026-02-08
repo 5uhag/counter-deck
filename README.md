@@ -1,4 +1,4 @@
-# Lite-Deck
+# Counter-Deck
 
 A customizable soundboard application with a 24-key grid interface, featuring cross-platform keypress detection and real-time audio playback.
 
@@ -14,11 +14,11 @@ A customizable soundboard application with a 24-key grid interface, featuring cr
 ## Project Structure
 
 ```
-lite-deck/
+counter-deck/
 ├── backend/              # Python FastAPI backend
 │   ├── keyboard_handler.py
 │   └── requirements.txt
-├── lite_deck_flutter/    # Flutter Android app
+├── counter_deck_flutter/    # Flutter Android app
 │   ├── lib/
 │   │   ├── models/
 │   │   ├── screens/
@@ -41,7 +41,7 @@ python keyboard_handler.py
 ### Mobile App (Flutter)
 
 ```bash
-cd lite_deck_flutter
+cd counter_deck_flutter
 flutter pub get
 flutter run
 ```
