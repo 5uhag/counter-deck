@@ -1,0 +1,70 @@
+name: Build and Release APK
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags like v1.0.0
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+      
+      - name: Get Flutter dependencies
+        working-directory: counter_deck_flutter
+        run: flutter pub get
+      
+      - name: Build APK
+        working-directory: counter_deck_flutter
+        run: flutter build apk --release
+      
+      - name: Get version from pubspec
+        id: version
+        working-directory: counter_deck_flutter
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | cut -d ' ' -f 2 | cut -d '+' -f 1)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: counter_deck_flutter/build/app/outputs/flutter-apk/app-release.apk
+          name: Counter-Deck v${{ steps.version.outputs.version }}
+          body: |
+            ## Counter-Deck Release
+            
+            ### 📱 Android App
+            Download `app-release.apk` and install on your Android device (Android 8+)
+            
+            ### 🖥️ Backend Setup
+            ```bash
+            pip install -r backend/requirements.txt
+            python backend/main.py
+            ```
+            
+            ### Features
+            - 24-key soundboard grid
+            - Custom icon support
+            - WebSocket communication
+            - Non-blocking audio playback
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

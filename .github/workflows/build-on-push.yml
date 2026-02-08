@@ -1,0 +1,51 @@
+name: Build APK on Push
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'counter_deck_flutter/**'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build Debug APK
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+      
+      - name: Get Flutter dependencies
+        working-directory: counter_deck_flutter
+        run: flutter pub get
+      
+      - name: Run Flutter analyze
+        working-directory: counter_deck_flutter
+        run: flutter analyze
+      
+      - name: Build Debug APK
+        working-directory: counter_deck_flutter
+        run: flutter build apk --debug
+      
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: counter-deck-debug-apk
+          path: counter_deck_flutter/build/app/outputs/flutter-apk/app-debug.apk
+          retention-days: 7
