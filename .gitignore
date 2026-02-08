@@ -1,0 +1,41 @@
+# Flutter
+lite_deck_flutter/.dart_tool/
+lite_deck_flutter/.flutter-plugins
+lite_deck_flutter/.flutter-plugins-dependencies
+lite_deck_flutter/.packages
+lite_deck_flutter/build/
+lite_deck_flutter/flutter_*.png
+lite_deck_flutter/linked_*.ds
+lite_deck_flutter/unlinked.ds
+lite_deck_flutter/unlinked_spec.ds
+
+# Python
+backend/__pycache__/
+backend/*.pyc
+backend/*.pyo
+backend/*.pyd
+backend/.Python
+backend/env/
+backend/venv/
+backend/ENV/
+backend/.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# User uploaded content
+lite_deck_flutter/assets/custom_icons/
+backend/uploads/
+backend/sounds/*.mp3
+backend/sounds/*.wav
+
+# Keep example config but ignore local modifications
+config.local.json

@@ -1,0 +1,177 @@
+{
+  "backend": {
+    "host": "0.0.0.0",
+    "port": 8000,
+    "headless": true
+  },
+  "buttons": [
+    {
+      "id": 1,
+      "name": "Numpad 0",
+      "key": "num_0",
+      "sound": "sounds/sound1.mp3",
+      "icon": ""
+    },
+    {
+      "id": 2,
+      "name": "Numpad 1",
+      "key": "num_1",
+      "sound": "sounds/sound2.mp3",
+      "icon": ""
+    },
+    {
+      "id": 3,
+      "name": "Numpad 2",
+      "key": "num_2",
+      "sound": "sounds/sound3.mp3",
+      "icon": ""
+    },
+    {
+      "id": 4,
+      "name": "Numpad 3",
+      "key": "num_3",
+      "sound": "sounds/sound4.mp3",
+      "icon": ""
+    },
+    {
+      "id": 5,
+      "name": "Numpad 4",
+      "key": "num_4",
+      "sound": "sounds/sound5.mp3",
+      "icon": ""
+    },
+    {
+      "id": 6,
+      "name": "Numpad 5",
+      "key": "num_5",
+      "sound": "sounds/sound6.mp3",
+      "icon": ""
+    },
+    {
+      "id": 7,
+      "name": "Numpad 6",
+      "key": "num_6",
+      "sound": "sounds/sound7.mp3",
+      "icon": ""
+    },
+    {
+      "id": 8,
+      "name": "Numpad 7",
+      "key": "num_7",
+      "sound": "sounds/sound8.mp3",
+      "icon": ""
+    },
+    {
+      "id": 9,
+      "name": "Numpad 8",
+      "key": "num_8",
+      "sound": "sounds/sound9.mp3",
+      "icon": ""
+    },
+    {
+      "id": 10,
+      "name": "Numpad 9",
+      "key": "num_9",
+      "sound": "sounds/sound10.mp3",
+      "icon": ""
+    },
+    {
+      "id": 11,
+      "name": "Numpad +",
+      "key": "num_add",
+      "sound": "sounds/sound11.mp3",
+      "icon": ""
+    },
+    {
+      "id": 12,
+      "name": "Numpad -",
+      "key": "num_subtract",
+      "sound": "sounds/sound12.mp3",
+      "icon": ""
+    },
+    {
+      "id": 13,
+      "name": "F5",
+      "key": "f5",
+      "sound": "sounds/sound13.mp3",
+      "icon": ""
+    },
+    {
+      "id": 14,
+      "name": "F6",
+      "key": "f6",
+      "sound": "sounds/sound14.mp3",
+      "icon": ""
+    },
+    {
+      "id": 15,
+      "name": "F7",
+      "key": "f7",
+      "sound": "sounds/sound15.mp3",
+      "icon": ""
+    },
+    {
+      "id": 16,
+      "name": "F8",
+      "key": "f8",
+      "sound": "sounds/sound16.mp3",
+      "icon": ""
+    },
+    {
+      "id": 17,
+      "name": "Empty Slot 1",
+      "key": "",
+      "sound": "",
+      "icon": ""
+    },
+    {
+      "id": 18,
+      "name": "Empty Slot 2",
+      "key": "",
+      "sound": "",
+      "icon": ""
+    },
+    {
+      "id": 19,
+      "name": "Empty Slot 3",
+      "key": "",
+      "sound": "",
+      "icon": ""
+    },
+    {
+      "id": 20,
+      "name": "Empty Slot 4",
+      "key": "",
+      "sound": "",
+      "icon": ""
+    },
+    {
+      "id": 21,
+      "name": "Empty Slot 5",
+      "key": "",
+      "sound": "",
+      "icon": ""
+    },
+    {
+      "id": 22,
+      "name": "Empty Slot 6",
+      "key": "",
+      "sound": "",
+      "icon": ""
+    },
+    {
+      "id": 23,
+      "name": "Empty Slot 7",
+      "key": "",
+      "sound": "",
+      "icon": ""
+    },
+    {
+      "id": 24,
+      "name": "Empty Slot 8",
+      "key": "",
+      "sound": "",
+      "icon": ""
+    }
+  ]
+}
