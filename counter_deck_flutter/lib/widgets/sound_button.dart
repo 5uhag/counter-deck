@@ -17,7 +17,7 @@ class SoundButton extends StatefulWidget {
     required this.onIconUpdated,
   }) : super(key: key);
 
-  @app
+  @override
   State<SoundButton> createState() => _SoundButtonState();
 }
 
