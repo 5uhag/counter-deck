@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/button_config.dart';
@@ -18,12 +19,24 @@ class _HomeScreenState extends State<HomeScreen> {
   final WebSocketService _webSocketService = WebSocketService();
   List<ButtonConfig> _buttons = [];
   bool _isConnected = false;
-  String _host = '192.168.1.100';
+  String _host = '10.0.2.2';
   int _port = 8000;
+  StreamSubscription<List<ButtonConfig>>? _configSub;
+  StreamSubscription<bool>? _connectionSub;
 
   @override
   void initState() {
     super.initState();
+    // Initialize default buttons
+    _buttons = List.generate(
+      24,
+      (index) => ButtonConfig(
+        id: index + 1,
+        name: 'Button ${index + 1}',
+        key: '',
+        sound: '',
+      ),
+    );
     _loadSettings();
     _setupListeners();
   }
@@ -38,19 +51,21 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _setupListeners() {
-    _webSocketService.configStream.listen((buttons) {
-      setState(() {
-        _buttons = buttons;
-      });
+    _configSub = _webSocketService.configStream.listen((buttons) {
+      if (mounted) {
+        setState(() {
+          _buttons = buttons;
+        });
+      }
     });
 
-    _webSocketService.connectionStream.listen((connected) {
-      setState(() {
-        _isConnected = connected;
-      });
-
-      // Show connection status message
+    _connectionSub = _webSocketService.connectionStream.listen((connected) {
       if (mounted) {
+        setState(() {
+          _isConnected = connected;
+        });
+
+        // Show connection status message
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -90,19 +105,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Initialize default buttons if empty
-    if (_buttons.isEmpty) {
-      _buttons = List.generate(
-        24,
-        (index) => ButtonConfig(
-          id: index + 1, // IDs should be 1-24 to match backend config
-          name: 'Button ${index + 1}',
-          key: '',
-          sound: '',
-        ),
-      );
-    }
-
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -312,6 +314,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _configSub?.cancel();
+    _connectionSub?.cancel();
     _webSocketService.dispose();
     super.dispose();
   }

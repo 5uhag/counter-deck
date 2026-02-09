@@ -31,9 +31,9 @@ class SounDeckLogo extends StatelessWidget {
                 color: Colors.yellow,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.graphic_eq,
-                size: 12,
+                size: size * 0.12,
                 color: Colors.black,
               ),
             ),
@@ -49,9 +49,9 @@ class SounDeckLogo extends StatelessWidget {
                 color: Colors.red,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.volume_up,
-                size: 12,
+                size: size * 0.12,
                 color: Colors.white,
               ),
             ),
@@ -67,9 +67,9 @@ class SounDeckLogo extends StatelessWidget {
                 color: Colors.blue,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.music_note,
-                size: 12,
+                size: size * 0.12,
                 color: Colors.white,
               ),
             ),
@@ -85,9 +85,9 @@ class SounDeckLogo extends StatelessWidget {
                 color: Colors.green,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.play_arrow,
-                size: 12,
+                size: size * 0.12,
                 color: Colors.white,
               ),
             ),

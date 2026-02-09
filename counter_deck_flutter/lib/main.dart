@@ -10,7 +10,7 @@ void main() async {
   await AppLogger().init();
 
   // Lock orientation to portrait
-  SystemChrome.setPreferredOrientations([
+  await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);

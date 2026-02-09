@@ -54,7 +54,7 @@ class AppLogger {
 
   bool get isEnabled => _isEnabled;
 
-  void log(String message, {String level = 'INFO'}) {
+  void log(String message, {String level = 'INFO'}) async {
     final timestamp = DateTime.now().toIso8601String();
     final logEntry = '[$timestamp] [$level] $message';
 
@@ -67,13 +67,13 @@ class AppLogger {
     // Print to console
     print(logEntry);
 
-    // Write to file if enabled
+    // Write to file if enabled (serialized writes)
     if (_isEnabled && _logFile != null) {
-      _logFile!
-          .writeAsString('$logEntry\n', mode: FileMode.append)
-          .catchError((e) {
+      try {
+        await _logFile!.writeAsString('$logEntry\n', mode: FileMode.append);
+      } catch (e) {
         print('Failed to write to log file: $e');
-      });
+      }
     }
   }
 

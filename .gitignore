@@ -15,7 +15,6 @@ counter_deck_flutter/.flutter-plugins-dependencies
 counter_deck_flutter/.packages
 counter_deck_flutter/build/
 counter_deck_flutter/android/.gradle/
-counter_deck_flutter/android/gradle/
 counter_deck_flutter/android/app/build/
 counter_deck_flutter/android/build/
 counter_deck_flutter/android/local.properties

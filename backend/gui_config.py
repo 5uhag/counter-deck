@@ -34,14 +34,14 @@ class SounDeckGUI:
     def load_config(self):
         """Load configuration from config.json"""
         if self.config_path.exists():
-            with open(self.config_path, 'r') as f:
+            with open(self.config_path, 'r', encoding='utf-8') as f:
                 return json.load(f)
         return {"buttons": []}
     
     def save_config(self):
         """Save configuration to config.json"""
         try:
-            with open(self.config_path, 'w') as f:
+            with open(self.config_path, 'w', encoding='utf-8') as f:
                 json.dump(self.config, f, indent=2)
             messagebox.showinfo("Success", "Configuration saved!")
         except Exception as e:
@@ -94,7 +94,8 @@ class SounDeckGUI:
                 font=('Arial', 10),
                 bg='#2a2a2a', fg='white').pack(anchor='w', pady=(5, 0))
         
-        tk.Label(info_left, text="Port: 8000", 
+        backend_port = self.config.get("backend", {}).get("port", 8000)
+        tk.Label(info_left, text=f"Port: {backend_port}", 
                 font=('Arial', 10),
                 bg='#2a2a2a', fg='white').pack(anchor='w')
         
@@ -265,9 +266,15 @@ class SounDeckGUI:
         if self.backend_process is None:
             try:
                 backend_path = Path(__file__).parent.parent / "backend" / "main.py"
+                # Use CREATE_NO_WINDOW only on Windows
+                import sys
+                kwargs = {}
+                if sys.platform == 'win32':
+                    kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
+                
                 self.backend_process = subprocess.Popen(
                     ['python', str(backend_path)],
-                    creationflags=subprocess.CREATE_NO_WINDOW
+                    **kwargs
                 )
                 self.backend_btn.config(text="⏹ Stop Backend", bg='#ff3333')
                 messagebox.showinfo("Backend", "Backend server started!")
@@ -298,9 +305,10 @@ class SounDeckGUI:
         
         try:
             # Create connection info as JSON
+            backend_port = self.config.get("backend", {}).get("port", 8000)
             connection_data = json.dumps({
                 "ip": ip,
-                "port": 8000,
+                "port": backend_port,
                 "app": "SounDeck"
             })
             

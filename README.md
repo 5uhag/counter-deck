@@ -39,7 +39,7 @@ A soundboard app for CS2 (and other games) - Control sounds from your phone and 
 
 1. **Clone/Download this repo**
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/5uhag/counter-deck.git
    cd counter-deck
    ```
 
@@ -132,15 +132,17 @@ Or run `soundeck_config.bat` for GUI config editor.
 
 ```
 counter-deck/
-├── backend/              # Python FastAPI server
+├── soundeck_config.bat  # GUI configuration script
+├── start_soundeck.bat   # Quick start script
+├── find_my_ip.bat       # IP finder helper
+├── backend/             # Python FastAPI server
 │   ├── main.py          # WebSocket server
 │   ├── audio_player.py  # Sound playback
 │   ├── keyboard_handler.py  # Hotkey detection
+│   ├── gui_config.py    # GUI configuration tool
 │   └── sounds/          # Your sound files go here
 ├── counter_deck_flutter/ # Android app
-├── config.json          # Button/sound mappings
-├── start_soundeck.bat   # Quick start script
-└── find_my_ip.bat       # IP finder helper
+└── config.json          # Button/sound mappings
 ```
 
 ## Tech Stack

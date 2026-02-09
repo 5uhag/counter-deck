@@ -27,10 +27,13 @@ class WebSocketService {
     _attemptConnection();
   }
 
-  void _attemptConnection() {
+  void _attemptConnection() async {
     try {
       _logger.debug('Creating WebSocket channel...');
       _channel = WebSocketChannel.connect(Uri.parse(_serverUrl));
+
+      // Wait for connection to be ready before marking as connected
+      await _channel!.ready;
       _isConnected = true;
       _connectionController.add(true);
       _logger.info('✓ WebSocket connected successfully');
@@ -122,6 +125,7 @@ class WebSocketService {
   void disconnect() {
     _logger.info('Disconnecting WebSocket');
     _isConnected = false;
+    _connectionController.add(false);
     _channel?.sink.close();
   }
 

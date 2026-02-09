@@ -10,14 +10,14 @@
       "id": 1,
       "name": "Numpad 0",
       "key": "num_0",
-      "sound": "backend\\sounds\\Voicy_allahu akbar meme.mp3",
+      "sound": "backend/sounds/Voicy_allahu akbar meme.mp3",
       "icon": ""
     },
     {
       "id": 2,
       "name": "Numpad 1",
       "key": "num_1",
-      "sound": "sounds/sound2.mp3",
+      "sound": "backend\\sounds\\among-us-role-reveal-sound.mp3",
       "icon": ""
     },
     {

@@ -26,6 +26,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() {
       _hostController.text = prefs.getString('host') ?? '10.0.2.2';
       _portController.text = prefs.getInt('port')?.toString() ?? '8000';
@@ -221,6 +222,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value: _debugLoggingEnabled,
               onChanged: (value) async {
                 setState(() => _debugLoggingEnabled = value);
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool('debug_logging', value);
                 await _logger.setEnabled(value);
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -295,6 +298,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         content: SizedBox(
           width: double.maxFinite,
+          height: MediaQuery.of(context).size.height * 0.6,
           child: logs.isEmpty
               ? const Text(
                   'No logs yet. Logs will appear here once you connect.',
