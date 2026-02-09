@@ -91,8 +91,12 @@ async def startup_event():
     config = load_config()
     logger.info(f"Loaded config with {len(config.get('buttons', []))} buttons")
     
-    # Initialize audio player
-    audio_player = AudioPlayer(base_path=str(Path(__file__).parent.parent))
+    # Get audio device from config
+    audio_device = config.get("backend", {}).get("audio_device", "Default")
+    logger.info(f"Audio output device: {audio_device}")
+    
+    # Initialize audio player with device selection
+    audio_player = AudioPlayer(base_path=str(Path(__file__).parent.parent), audio_device=audio_device)
     logger.info("Audio player initialized")
     
     # Initialize and start keyboard handler
@@ -140,6 +144,7 @@ async def websocket_endpoint(websocket: WebSocket):
             
             if data.get("type") == "button_press":
                 button_id = data.get("button_id")
+                logger.info(f"📱 Received button press from app: button_id={button_id}")
                 if button_id:
                     handle_button_press(button_id)
                     

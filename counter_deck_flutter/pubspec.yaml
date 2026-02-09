@@ -1,5 +1,5 @@
 name: counter_deck_flutter
-description: A soundboard Flutter app for Counter-Deck
+description: A soundboard Flutter app for SounDeck
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -10,12 +10,9 @@ dependencies:
   flutter:
     sdk: flutter
   web_socket_channel: ^2.4.0
-  image_picker: ^1.0.7
-  path_provider: ^2.1.2
   shared_preferences: ^2.2.2
   webview_flutter: ^4.5.0
-  flutter_downloader: ^1.11.6
-  permission_handler: ^11.2.0
+  path_provider: ^2.1.1
 
 dev_dependencies:
   flutter_test:

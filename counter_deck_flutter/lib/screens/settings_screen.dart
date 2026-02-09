@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/app_logger.dart';
 
 class SettingsScreen extends StatefulWidget {
   final Function(String, int) onSettingsSaved;
 
   const SettingsScreen({Key? key, required this.onSettingsSaved})
-    : super(key: key);
+      : super(key: key);
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -14,6 +15,8 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final TextEditingController _hostController = TextEditingController();
   final TextEditingController _portController = TextEditingController();
+  final AppLogger _logger = AppLogger();
+  bool _debugLoggingEnabled = false;
 
   @override
   void initState() {
@@ -24,8 +27,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _hostController.text = prefs.getString('host') ?? '192.168.1.100';
+      _hostController.text = prefs.getString('host') ?? '10.0.2.2';
       _portController.text = prefs.getInt('port')?.toString() ?? '8000';
+      _debugLoggingEnabled = prefs.getBool('debug_logging') ?? false;
     });
   }
 
@@ -162,18 +166,189 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade900.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.orange, width: 1),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.info_outline,
+                      color: Colors.orange, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '⚠️ DON\'T use "localhost" - it won\'t work on Android!\n'
+                      'Use your PC\'s IP address instead (like 192.168.x.x)',
+                      style: TextStyle(
+                        color: Colors.orange.shade200,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
             Text(
               '1. Run the Python backend on your PC\n'
-              '2. Find your PC\'s local IP address\n'
+              '2. Find your PC\'s local IP:\n'
+              '   • Windows: Run "ipconfig" in cmd\n'
+              '   • Look for "IPv4 Address" (like 192.168.x.x)\n'
+              '   • Android Emulator: Use 10.0.2.2\n'
               '3. Enter the IP and port above\n'
               '4. Tap Save & Connect\n'
               '5. Long press buttons to set custom icons',
               style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
             ),
+            const SizedBox(height: 24),
+            const Divider(color: Color(0xFF39FF14)),
+            const SizedBox(height: 16),
+            const Text(
+              'Debug Logging',
+              style: TextStyle(
+                color: Color(0xFF39FF14),
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            SwitchListTile(
+              value: _debugLoggingEnabled,
+              onChanged: (value) async {
+                setState(() => _debugLoggingEnabled = value);
+                await _logger.setEnabled(value);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        value
+                            ? 'Debug logging enabled'
+                            : 'Debug logging disabled',
+                      ),
+                      backgroundColor: const Color(0xFF39FF14),
+                      duration: const Duration(seconds: 1),
+                    ),
+                  );
+                }
+              },
+              title: const Text(
+                'Enable Debug Logs',
+                style: TextStyle(color: Colors.white),
+              ),
+              subtitle: Text(
+                _debugLoggingEnabled
+                    ? 'Logs are being saved to file'
+                    : 'Enable to debug connection issues',
+                style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
+              ),
+              activeColor: const Color(0xFF39FF14),
+              tileColor: Colors.grey.shade900,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.article, color: Color(0xFF39FF14)),
+                    label: const Text('View Logs'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF39FF14),
+                      side: const BorderSide(color: Color(0xFF39FF14)),
+                    ),
+                    onPressed: _viewLogs,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                    label: const Text('Clear Logs'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red),
+                    ),
+                    onPressed: _clearLogs,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
     );
+  }
+
+  void _viewLogs() {
+    final logs = _logger.getMemoryLogs();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.grey.shade900,
+        title: const Text(
+          'Debug Logs (Last 100)',
+          style: TextStyle(color: Color(0xFF39FF14)),
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: logs.isEmpty
+              ? const Text(
+                  'No logs yet. Logs will appear here once you connect.',
+                  style: TextStyle(color: Colors.white),
+                )
+              : ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: logs.length,
+                  itemBuilder: (context, index) {
+                    final log = logs[index];
+                    Color logColor = Colors.white;
+                    if (log.contains('[ERROR]')) {
+                      logColor = Colors.red;
+                    } else if (log.contains('[WARN]')) {
+                      logColor = Colors.orange;
+                    } else if (log.contains('[INFO]')) {
+                      logColor = const Color(0xFF39FF14);
+                    } else if (log.contains('[DEBUG]')) {
+                      logColor = Colors.grey.shade400;
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        log,
+                        style: TextStyle(color: logColor, fontSize: 10),
+                      ),
+                    );
+                  },
+                ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Close',
+              style: TextStyle(color: Color(0xFF39FF14)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _clearLogs() async {
+    await _logger.clearLogs();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Logs cleared'),
+          backgroundColor: Color(0xFF39FF14),
+          duration: Duration(seconds: 1),
+        ),
+      );
+    }
   }
 
   @override

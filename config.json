@@ -2,14 +2,15 @@
   "backend": {
     "host": "0.0.0.0",
     "port": 8000,
-    "headless": true
+    "headless": true,
+    "audio_device": "VB-Audio Virtual Cable"
   },
   "buttons": [
     {
       "id": 1,
       "name": "Numpad 0",
       "key": "num_0",
-      "sound": "sounds/sound1.mp3",
+      "sound": "backend\\sounds\\Voicy_allahu akbar meme.mp3",
       "icon": ""
     },
     {

@@ -1,41 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+*.egg-info/
+
 # Flutter
 counter_deck_flutter/.dart_tool/
 counter_deck_flutter/.flutter-plugins
 counter_deck_flutter/.flutter-plugins-dependencies
 counter_deck_flutter/.packages
 counter_deck_flutter/build/
-counter_deck_flutter/flutter_*.png
-counter_deck_flutter/linked_*.ds
-counter_deck_flutter/unlinked.ds
-counter_deck_flutter/unlinked_spec.ds
+counter_deck_flutter/android/.gradle/
+counter_deck_flutter/android/gradle/
+counter_deck_flutter/android/app/build/
+counter_deck_flutter/android/build/
+counter_deck_flutter/android/local.properties
+counter_deck_flutter/.idea/
+counter_deck_flutter/*.iml
 
-# Python
-backend/__pycache__/
-backend/*.pyc
-backend/*.pyo
-backend/*.pyd
-backend/.Python
-backend/env/
-backend/venv/
-backend/ENV/
-backend/.venv
+# KEEP the APK for releases
+!counter_deck_flutter/build/app/outputs/flutter-apk/app-release.apk
+
+# Keep Windows GUI
+!backend/gui_config.py
+
+# OS
+.DS_Store
+Thumbs.db
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
 
-# OS
-.DS_Store
-Thumbs.db
-
-# User uploaded content
-counter_deck_flutter/assets/custom_icons/
-backend/uploads/
+# Local sound files (users add their own)
 backend/sounds/*.mp3
 backend/sounds/*.wav
-
-# Keep example config but ignore local modifications
-config.local.json
+backend/sounds/*.ogg
+!backend/sounds/.gitkeep
