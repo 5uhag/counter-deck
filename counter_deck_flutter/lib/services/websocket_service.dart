@@ -8,6 +8,7 @@ class WebSocketService {
   final AppLogger _logger = AppLogger();
   WebSocketChannel? _channel;
   String _serverUrl = '';
+  String _apiKey = '';
   bool _isConnected = false;
   final StreamController<List<ButtonConfig>> _configController =
       StreamController<List<ButtonConfig>>.broadcast();
@@ -21,16 +22,19 @@ class WebSocketService {
   Stream<String> get errorStream => _errorController.stream;
   bool get isConnected => _isConnected;
 
-  void connect(String host, int port) {
+  void connect(String host, int port, String apiKey) {
     _serverUrl = 'ws://$host:$port/ws';
+    _apiKey = apiKey;
     _logger.info('Attempting connection to: $_serverUrl');
     _attemptConnection();
   }
 
   void _attemptConnection() async {
     try {
-      _logger.debug('Creating WebSocket channel...');
-      _channel = WebSocketChannel.connect(Uri.parse(_serverUrl));
+      _logger.debug('Creating WebSocket channel with API key...');
+      // Add API key as query parameter
+      final uri = Uri.parse('$_serverUrl?api_key=$_apiKey');
+      _channel = WebSocketChannel.connect(uri);
 
       // Wait for connection to be ready before marking as connected
       await _channel!.ready;
@@ -133,5 +137,6 @@ class WebSocketService {
     disconnect();
     _configController.close();
     _connectionController.close();
+    _errorController.close();
   }
 }

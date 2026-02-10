@@ -87,6 +87,29 @@ class _SoundButtonState extends State<SoundButton> {
     );
   }
 
+  void _handleButtonPress() {
+    if (!widget.webSocketService.isConnected) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.error, color: Colors.red),
+              SizedBox(width: 12),
+              Text(
+                'Not connected to backend!',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          backgroundColor: Color(0xFF661111),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+    widget.webSocketService.sendButtonPress(widget.config.id);
+  }
+
   @override
   Widget build(BuildContext context) {
     final hasSound = widget.config.sound.isNotEmpty;
@@ -94,9 +117,7 @@ class _SoundButtonState extends State<SoundButton> {
 
     return RepaintBoundary(
       child: GestureDetector(
-        onTap: hasSound
-            ? () => widget.webSocketService.sendButtonPress(widget.config.id)
-            : null,
+        onTap: hasSound ? _handleButtonPress : null,
         onLongPress: _showIconMenu,
         child: Container(
           decoration: BoxDecoration(

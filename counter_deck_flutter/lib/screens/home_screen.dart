@@ -21,8 +21,11 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isConnected = false;
   String _host = '10.0.2.2';
   int _port = 8000;
+  String _apiKey = '';
   StreamSubscription<List<ButtonConfig>>? _configSub;
   StreamSubscription<bool>? _connectionSub;
+  DateTime _lastStatusMessage =
+      DateTime.now().subtract(const Duration(seconds: 10));
 
   @override
   void initState() {
@@ -46,8 +49,9 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _host = prefs.getString('host') ?? '10.0.2.2';
       _port = prefs.getInt('port') ?? 8000;
+      _apiKey = prefs.getString('api_key') ?? '';
     });
-    _webSocketService.connect(_host, _port);
+    _webSocketService.connect(_host, _port, _apiKey);
   }
 
   void _setupListeners() {
@@ -65,41 +69,52 @@ class _HomeScreenState extends State<HomeScreen> {
           _isConnected = connected;
         });
 
-        // Show connection status message
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(
-                  connected ? Icons.check_circle : Icons.error,
-                  color: connected ? const Color(0xFF39FF14) : Colors.red,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  connected
-                      ? 'Connected to backend!'
-                      : 'Disconnected from backend',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ],
+        // Debounce status messages - only show if 2 seconds have passed since last one
+        final now = DateTime.now();
+        if (now.difference(_lastStatusMessage).inSeconds >= 2) {
+          _lastStatusMessage = now;
+
+          // Show connection status message
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(
+                    connected ? Icons.check_circle : Icons.error,
+                    color: connected ? const Color(0xFF39FF14) : Colors.red,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    connected
+                        ? 'Connected to backend!'
+                        : 'Disconnected from backend',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              backgroundColor:
+                  connected ? Colors.green.shade900 : Colors.red.shade900,
+              duration: const Duration(seconds: 2),
             ),
-            backgroundColor:
-                connected ? Colors.green.shade900 : Colors.red.shade900,
-            duration: const Duration(seconds: 2),
-          ),
-        );
+          );
+        }
       }
     });
   }
 
-  void _onSettingsSaved(String host, int port) {
+  void _onSettingsSaved(String host, int port) async {
+    // Reload API key from prefs
+    final prefs = await SharedPreferences.getInstance();
+    final apiKey = prefs.getString('api_key') ?? '';
+
     setState(() {
       _host = host;
       _port = port;
+      _apiKey = apiKey;
     });
     _webSocketService.disconnect();
-    _webSocketService.connect(host, port);
+    _webSocketService.connect(host, port, apiKey);
     Navigator.pop(context);
   }
 

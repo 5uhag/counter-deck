@@ -42,3 +42,6 @@ backend/sounds/*.mp3
 backend/sounds/*.wav
 backend/sounds/*.ogg
 !backend/sounds/.gitkeep
+
+# Config with sensitive data (use config.json.template instead)
+config.json

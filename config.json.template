@@ -3,119 +3,120 @@
     "host": "0.0.0.0",
     "port": 8000,
     "headless": true,
-    "audio_device": "VB-Audio Virtual Cable"
+    "audio_device": "VB-Audio Virtual Cable",
+    "api_key": ""
   },
   "buttons": [
     {
       "id": 1,
       "name": "Numpad 0",
       "key": "num_0",
-      "sound": "backend/sounds/Voicy_allahu akbar meme.mp3",
+      "sound": "",
       "icon": ""
     },
     {
       "id": 2,
       "name": "Numpad 1",
       "key": "num_1",
-      "sound": "backend/sounds/among-us-role-reveal-sound.mp3",
+      "sound": "",
       "icon": ""
     },
     {
       "id": 3,
       "name": "Numpad 2",
       "key": "num_2",
-      "sound": "sounds/sound3.mp3",
+      "sound": "",
       "icon": ""
     },
     {
       "id": 4,
       "name": "Numpad 3",
       "key": "num_3",
-      "sound": "sounds/sound4.mp3",
+      "sound": "",
       "icon": ""
     },
     {
       "id": 5,
       "name": "Numpad 4",
       "key": "num_4",
-      "sound": "sounds/sound5.mp3",
+      "sound": "",
       "icon": ""
     },
     {
       "id": 6,
       "name": "Numpad 5",
       "key": "num_5",
-      "sound": "sounds/sound6.mp3",
+      "sound": "",
       "icon": ""
     },
     {
       "id": 7,
       "name": "Numpad 6",
       "key": "num_6",
-      "sound": "sounds/sound7.mp3",
+      "sound": "",
       "icon": ""
     },
     {
       "id": 8,
       "name": "Numpad 7",
       "key": "num_7",
-      "sound": "sounds/sound8.mp3",
+      "sound": "",
       "icon": ""
     },
     {
       "id": 9,
       "name": "Numpad 8",
       "key": "num_8",
-      "sound": "sounds/sound9.mp3",
+      "sound": "",
       "icon": ""
     },
     {
       "id": 10,
       "name": "Numpad 9",
       "key": "num_9",
-      "sound": "sounds/sound10.mp3",
+      "sound": "",
       "icon": ""
     },
     {
       "id": 11,
       "name": "Numpad +",
       "key": "num_add",
-      "sound": "sounds/sound11.mp3",
+      "sound": "",
       "icon": ""
     },
     {
       "id": 12,
       "name": "Numpad -",
       "key": "num_subtract",
-      "sound": "sounds/sound12.mp3",
+      "sound": "",
       "icon": ""
     },
     {
       "id": 13,
       "name": "F5",
       "key": "f5",
-      "sound": "sounds/sound13.mp3",
+      "sound": "",
       "icon": ""
     },
     {
       "id": 14,
       "name": "F6",
       "key": "f6",
-      "sound": "sounds/sound14.mp3",
+      "sound": "",
       "icon": ""
     },
     {
       "id": 15,
       "name": "F7",
       "key": "f7",
-      "sound": "sounds/sound15.mp3",
+      "sound": "",
       "icon": ""
     },
     {
       "id": 16,
       "name": "F8",
       "key": "f8",
-      "sound": "sounds/sound16.mp3",
+      "sound": "",
       "icon": ""
     },
     {

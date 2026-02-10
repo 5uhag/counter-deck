@@ -9,6 +9,7 @@ import os
 import subprocess
 import webbrowser
 import socket
+import psutil
 from pathlib import Path
 
 try:
@@ -26,7 +27,6 @@ class SounDeckGUI:
         self.root.configure(bg='#1a1a1a')
         
         self.config_path = Path(__file__).parent.parent / "config.json"
-        self.backend_process = None
         self.config = self.load_config()
         
         self.setup_ui()
@@ -69,13 +69,12 @@ class SounDeckGUI:
                            relief=tk.FLAT, padx=15, pady=5)
         save_btn.pack(side=tk.LEFT, padx=5)
         
-        backend_btn = tk.Button(btn_frame, text="▶ Start Backend", 
-                              command=self.toggle_backend,
-                              bg='#333', fg='white',
-                              font=('Arial', 10),
-                              relief=tk.FLAT, padx=15, pady=5)
-        backend_btn.pack(side=tk.LEFT, padx=5)
-        self.backend_btn = backend_btn
+        kill_btn = tk.Button(btn_frame, text="⚠ Kill SounDeck", 
+                           command=self.kill_all_processes,
+                           bg='#ff3333', fg='white',
+                           font=('Arial', 10, 'bold'),
+                           relief=tk.FLAT, padx=15, pady=5)
+        kill_btn.pack(side=tk.LEFT, padx=5)
         
         # Connection info panel with QR code
         info_frame = tk.Frame(self.root, bg='#2a2a2a', relief=tk.RAISED, borderwidth=1)
@@ -98,6 +97,35 @@ class SounDeckGUI:
         tk.Label(info_left, text=f"Port: {backend_port}", 
                 font=('Arial', 10),
                 bg='#2a2a2a', fg='white').pack(anchor='w')
+        
+        # API Key display with copy button
+        tk.Label(info_left, text="🔐 API Key:", 
+                font=('Arial', 10, 'bold'),
+                bg='#2a2a2a', fg='#39FF14').pack(anchor='w', pady=(10, 5))
+        
+        api_key = self.config.get("backend", {}).get("api_key", "Not generated yet")
+        api_key_display = api_key[:16] + "..." if len(api_key) > 16 else api_key
+        
+        api_key_frame = tk.Frame(info_left, bg='#2a2a2a')
+        api_key_frame.pack(anchor='w')
+        
+        api_key_label = tk.Label(api_key_frame, text=api_key_display, 
+                               font=('Arial', 9, 'bold'),
+                               bg='#3a3a3a', fg='#39FF14',
+                               padx=10, pady=5)
+        api_key_label.pack(side=tk.LEFT, padx=(0, 5))
+        
+        def copy_api_key():
+            self.root.clipboard_clear()
+            self.root.clipboard_append(api_key)
+            messagebox.showinfo("Copied", "API key copied to clipboard!")
+        
+        copy_btn = tk.Button(api_key_frame, text="📋 Copy",
+                           command=copy_api_key,
+                           bg='#39FF14', fg='black',
+                           font=('Arial', 8, 'bold'),
+                           relief=tk.FLAT, padx=10, pady=5)
+        copy_btn.pack(side=tk.LEFT)
         
         # Audio device selector
         tk.Label(info_left, text="🔊 Audio Output:", 
@@ -261,30 +289,32 @@ class SounDeckGUI:
                 button_config['sound'] = filename
                 sound_label.config(text=os.path.basename(filename))
     
-    def toggle_backend(self):
-        """Start or stop the backend server"""
-        if self.backend_process is None:
-            try:
-                backend_path = Path(__file__).parent.parent / "backend" / "main.py"
-                # Use CREATE_NO_WINDOW only on Windows
-                import sys
-                kwargs = {}
-                if sys.platform == 'win32':
-                    kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
+    def kill_all_processes(self):
+        """Kill all SounDeck processes using the Python script"""
+        result = messagebox.askyesno(
+            "Kill SounDeck",
+            "This will kill ALL SounDeck processes.\n\nContinue?"
+        )
+        
+        if not result:
+            return
+        
+        try:
+            kill_script = Path(__file__).parent / "kill_soundeck.py"
+            result = subprocess.run(
+                ['python', str(kill_script)],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            
+            if result.returncode == 0:
+                messagebox.showinfo("Success", result.stdout)
+            else:
+                messagebox.showerror("Error", result.stderr)
                 
-                self.backend_process = subprocess.Popen(
-                    ['python', str(backend_path)],
-                    **kwargs
-                )
-                self.backend_btn.config(text="⏹ Stop Backend", bg='#ff3333')
-                messagebox.showinfo("Backend", "Backend server started!")
-            except Exception as e:
-                messagebox.showerror("Error", f"Failed to start backend: {e}")
-        else:
-            self.backend_process.terminate()
-            self.backend_process = None
-            self.backend_btn.config(text="▶ Start Backend", bg='#333')
-            messagebox.showinfo("Backend", "Backend server stopped!")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to kill processes: {e}")
     
     
     def get_local_ip(self):
@@ -304,11 +334,13 @@ class SounDeckGUI:
             return
         
         try:
-            # Create connection info as JSON
+            # Create connection info as JSON with API key
             backend_port = self.config.get("backend", {}).get("port", 8000)
+            api_key = self.config.get("backend", {}).get("api_key", "")
             connection_data = json.dumps({
                 "ip": ip,
                 "port": backend_port,
+                "api_key": api_key,
                 "app": "SounDeck"
             })
             
@@ -336,8 +368,6 @@ class SounDeckGUI:
     
     def on_closing(self):
         """Handle window close event"""
-        if self.backend_process:
-            self.backend_process.terminate()
         self.root.destroy()
 
 def main():

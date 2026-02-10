@@ -4,11 +4,17 @@ Lite-Deck Backend - FastAPI server with WebSocket support
 import json
 import os
 import logging
+import secrets
+import signal
+import sys
 from pathlib import Path
 from typing import List, Dict, Any
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 import uvicorn
 
 from audio_player import AudioPlayer
@@ -21,23 +27,21 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Rate limiting setup
+limiter = Limiter(key_func=get_remote_address)
+
 # Initialize FastAPI app
 app = FastAPI(title="Lite-Deck Backend", version="1.0.0")
-
-# Enable CORS for Flutter app
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Global instances
 audio_player: AudioPlayer = None
 keyboard_handler: KeyboardHandler = None
 config: Dict[str, Any] = {}
 connected_clients: List[WebSocket] = []
+API_KEY: str = ""
+
 
 
 def load_config() -> Dict[str, Any]:
@@ -50,6 +54,14 @@ def load_config() -> Dict[str, Any]:
     
     with open(config_path, 'r') as f:
         return json.load(f)
+
+
+def save_config(config_data: Dict[str, Any]) -> None:
+    """Save configuration to config.json"""
+    config_path = Path(__file__).parent.parent / "config.json"
+    with open(config_path, 'w') as f:
+        json.dump(config_data, f, indent=2)
+    logger.info("Configuration saved")
 
 
 def handle_key_press(key_name: str) -> None:
@@ -85,11 +97,35 @@ def handle_button_press(button_id: int) -> None:
 @app.on_event("startup")
 async def startup_event():
     """Initialize components on startup"""
-    global audio_player, keyboard_handler, config
+    global audio_player, keyboard_handler, config, API_KEY
     
     # Load configuration
     config = load_config()
     logger.info(f"Loaded config with {len(config.get('buttons', []))} buttons")
+    
+    # Generate or load API key
+    if "backend" not in config:
+        config["backend"] = {}
+    
+    if not config["backend"].get("api_key"):
+        API_KEY = secrets.token_urlsafe(32)
+        config["backend"]["api_key"] = API_KEY
+        save_config(config)
+        logger.warning(f"🔐 Generated new API key: {API_KEY[:8]}...")
+    else:
+        API_KEY = config["backend"]["api_key"]
+        logger.info(f"🔐 Loaded existing API key: {API_KEY[:8]}...")
+    
+    # Configure CORS with allowed origins
+    allowed_origins = config.get("backend", {}).get("allowed_origins", ["http://localhost"])
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=allowed_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    logger.info(f"CORS enabled for: {allowed_origins}")
     
     # Get audio device from config
     audio_device = config.get("backend", {}).get("audio_device", "Default")
@@ -103,6 +139,7 @@ async def startup_event():
     keyboard_handler = KeyboardHandler(key_callback=handle_key_press)
     keyboard_handler.start()
     logger.info("Keyboard handler initialized and started")
+    logger.info("✓ Backend startup complete")
 
 
 @app.on_event("shutdown")
@@ -110,29 +147,84 @@ async def shutdown_event():
     """Cleanup on shutdown"""
     if keyboard_handler:
         keyboard_handler.stop()
-    logger.info("Backend shut down")
+    logger.info("Backend shut down cleanly")
+
+
+async def verify_api_key(request: Request) -> bool:
+    """Verify API key from request headers or query params"""
+    # Check Authorization header
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        token = auth_header[7:]
+        if token == API_KEY:
+            return True
+    
+    # Check query parameter (for WebSocket connections)
+    api_key_param = request.query_params.get("api_key", "")
+    if api_key_param == API_KEY:
+        return True
+    
+    # Log unauthorized access attempt
+    client_ip = request.client.host if request.client else "unknown"
+    logger.warning(f"⚠️ Unauthorized access attempt from {client_ip}")
+    return False
+
+
+@app.middleware("http")
+async def authentication_middleware(request: Request, call_next):
+    """Authentication middleware for all HTTP requests"""
+    # Allow health check without auth
+    if request.url.path in ["/health", "/"]:
+        return await call_next(request)
+    
+    # Verify API key
+    if not await verify_api_key(request):
+        return JSONResponse(
+            status_code=401,
+            content={"error": "Unauthorized", "message": "Invalid or missing API key"}
+        )
+    
+    return await call_next(request)
+
 
 
 @app.get("/")
-async def root():
+@limiter.limit("30/minute")
+async def root(request: Request):
     """Root endpoint"""
-    return {"message": "Lite-Deck Backend Running", "version": "1.0.0"}
+    return {"message": "Lite-Deck Backend Running", "version": "1.0.0", "auth": "required"}
+
+
+@app.get("/health")
+async def health():
+    """Health check endpoint (no auth required)"""
+    return {"status": "healthy", "version": "1.0.0"}
 
 
 @app.get("/config")
-async def get_config():
-    """Get current configuration"""
+@limiter.limit("10/minute")
+async def get_config(request: Request):
+    """Get current configuration (requires auth)"""
     return JSONResponse(content=config)
+
 
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     """
-    WebSocket endpoint for Flutter app communication
+    WebSocket endpoint for Flutter app communication (requires API key)
     """
+    # Check API key from query parameter
+    api_key_param = websocket.query_params.get("api_key", "")
+    if api_key_param != API_KEY:
+        client_host = websocket.client.host if websocket.client else "unknown"
+        logger.warning(f"⚠️ Unauthorized WebSocket connection attempt from {client_host}")
+        await websocket.close(code=1008, reason="Unauthorized")
+        return
+    
     await websocket.accept()
     connected_clients.append(websocket)
-    logger.info(f"Client connected. Total clients: {len(connected_clients)}")
+    logger.info(f"✅ Authenticated client connected. Total clients: {len(connected_clients)}")
     
     try:
         # Send initial config

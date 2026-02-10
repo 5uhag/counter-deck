@@ -48,7 +48,13 @@ A soundboard app for CS2 (and other games) - Control sounds from your phone and 
    pip install -r backend/requirements.txt
    ```
 
-3. **Add your sound files**
+3. **Create your config file**
+   ```bash
+   copy config.json.template config.json
+   ```
+   The API key will be auto-generated on first run.
+
+4. **Add your sound files**
    - Put MP3/WAV files in `backend/sounds/`
    - Update `config.json` to map sounds to buttons
 
@@ -111,22 +117,32 @@ Or run `soundeck_config.bat` for GUI config editor.
 ## Troubleshooting
 
 ### Phone can't connect?
-1. Enable **Debug Logs** in Settings
-2. Tap **View Logs** to see what's happening
-3. Common issues:
+1. Make sure backend is running (`python backend/main.py` or `start_soundeck.bat`)
+2. Enable **Debug Logs** in app Settings
+3. Tap **View Logs** to see what's happening
+4. Common issues:
    - Using "localhost" instead of PC's IP ❌
    - Phone and PC on different WiFi networks
    - Windows Firewall blocking connection
    - Backend not running
+   - Missing or incorrect API key
 
 ### Sounds not playing from phone?
 - Check backend logs for "📱 Received button press"
 - Verify sound files exist in `backend/sounds/`
 - Make sure VB-CABLE is installed
+- Ensure backend is connected to the app
 
 ### Keyboard detection not working?
 - Backend must be running as administrator (for global hotkeys)
 - Check if other apps are blocking keypresses
+
+### Emergency: Kill All SounDeck Processes
+If SounDeck isn't responding or causing issues:
+```bash
+stop_backend.bat
+```
+Or use the **⚠ Kill SounDeck** button in the GUI config tool.
 
 ## Project Structure
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/app_logger.dart';
+import 'qr_scanner_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final Function(String, int) onSettingsSaved;
@@ -15,8 +16,10 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final TextEditingController _hostController = TextEditingController();
   final TextEditingController _portController = TextEditingController();
+  final TextEditingController _apiKeyController = TextEditingController();
   final AppLogger _logger = AppLogger();
   bool _debugLoggingEnabled = false;
+  bool _showApiKey = false;
 
   @override
   void initState() {
@@ -30,14 +33,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() {
       _hostController.text = prefs.getString('host') ?? '10.0.2.2';
       _portController.text = prefs.getInt('port')?.toString() ?? '8000';
+      _apiKeyController.text = prefs.getString('api_key') ?? '';
       _debugLoggingEnabled = prefs.getBool('debug_logging') ?? false;
     });
   }
 
   Future<void> _saveSettings() async {
+    // Validate API key is not empty
+    if (_apiKeyController.text.trim().isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.error, color: Colors.white),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'API Key is required! Get it from the desktop GUI.',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+      return;
+    }
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('host', _hostController.text);
     await prefs.setInt('port', int.tryParse(_portController.text) ?? 8000);
+    await prefs.setString('api_key', _apiKeyController.text);
 
     widget.onSettingsSaved(
       _hostController.text,
@@ -52,6 +82,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
           duration: Duration(seconds: 2),
         ),
       );
+    }
+  }
+
+  Future<void> _scanQRCode() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const QRScannerScreen()),
+    );
+
+    if (result != null && result is Map) {
+      setState(() {
+        _hostController.text = result['host'] ?? '';
+        _portController.text = result['port']?.toString() ?? '8000';
+        _apiKeyController.text = result['api_key'] ?? '';
+      });
+      await _saveSettings();
     }
   }
 
@@ -79,7 +125,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
+            // QR Scanner Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF39FF14),
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.all(16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onPressed: _scanQRCode,
+                icon: const Icon(Icons.qr_code_scanner),
+                label: const Text(
+                  'Scan QR Code',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Center(
+              child: Text(
+                '— OR —',
+                style: TextStyle(color: Colors.grey, fontSize: 14),
+              ),
+            ),
+            const SizedBox(height: 16),
             TextField(
               controller: _hostController,
               style: const TextStyle(color: Colors.white),
@@ -133,6 +207,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     color: Color(0xFF39FF14),
                     width: 2,
                   ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _apiKeyController,
+              obscureText: !_showApiKey,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                labelText: 'API Key (Required)',
+                labelStyle: const TextStyle(color: Color(0xFF39FF14)),
+                hintText: 'Get from desktop GUI',
+                hintStyle: TextStyle(color: Colors.grey.shade600),
+                filled: true,
+                fillColor: Colors.grey.shade900,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: Color(0xFF39FF14)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: Color(0xFF39FF14)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(
+                    color: Color(0xFF39FF14),
+                    width: 2,
+                  ),
+                ),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _showApiKey ? Icons.visibility_off : Icons.visibility,
+                    color: const Color(0xFF39FF14),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _showApiKey = !_showApiKey;
+                    });
+                  },
                 ),
               ),
             ),
@@ -196,14 +310,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              '1. Run the Python backend on your PC\n'
-              '2. Find your PC\'s local IP:\n'
+              '1. Run the SounDeck GUI on your PC (soundeck_config.bat)\n'
+              '2. Click "Start Backend" in the GUI\n'
+              '3. Copy the API Key from the GUI (click Copy button)\n'
+              '4. Find your PC\'s local IP:\n'
+              '   • Shown in the GUI\n'
               '   • Windows: Run "ipconfig" in cmd\n'
               '   • Look for "IPv4 Address" (like 192.168.x.x)\n'
               '   • Android Emulator: Use 10.0.2.2\n'
-              '3. Enter the IP and port above\n'
-              '4. Tap Save & Connect\n'
-              '5. Long press buttons to set custom icons',
+              '5. Enter IP, Port, and API Key above\n'
+              '6. Tap Save & Connect\n'
+              '\n'
+              '💡 TIP: Use the QR scanner for quick setup!',
               style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
             ),
             const SizedBox(height: 24),
@@ -359,6 +477,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void dispose() {
     _hostController.dispose();
     _portController.dispose();
+    _apiKeyController.dispose();
     super.dispose();
   }
 }
