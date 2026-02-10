@@ -309,9 +309,9 @@ class SounDeckGUI:
             )
             
             if result.returncode == 0:
-                messagebox.showinfo("Success", result.stdout)
+                messagebox.showinfo("Success", "All SounDeck processes killed successfully!")
             else:
-                messagebox.showerror("Error", result.stderr)
+                messagebox.showerror("Error", "Failed to kill some processes. Try again.")
                 
         except Exception as e:
             messagebox.showerror("Error", f"Failed to kill processes: {e}")

@@ -35,6 +35,16 @@ app = FastAPI(title="Lite-Deck Backend", version="1.0.0")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+# Add CORS middleware (must be done before app starts)
+# Default to localhost only - will be updated during startup if config specifies
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Global instances
 audio_player: AudioPlayer = None
 keyboard_handler: KeyboardHandler = None
@@ -116,20 +126,10 @@ async def startup_event():
         API_KEY = config["backend"]["api_key"]
         logger.info(f"🔐 Loaded existing API key: {API_KEY[:8]}...")
     
-    # Configure CORS with allowed origins
-    allowed_origins = config.get("backend", {}).get("allowed_origins", ["http://localhost"])
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=allowed_origins,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-    logger.info(f"CORS enabled for: {allowed_origins}")
-    
     # Get audio device from config
     audio_device = config.get("backend", {}).get("audio_device", "Default")
     logger.info(f"Audio output device: {audio_device}")
+
     
     # Initialize audio player with device selection
     audio_player = AudioPlayer(base_path=str(Path(__file__).parent.parent), audio_device=audio_device)

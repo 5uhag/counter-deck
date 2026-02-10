@@ -1,14 +1,17 @@
 name: Build APK on Push
 
-on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'counter_deck_flutter/**'
-  pull_request:
-    branches:
-      - main
+# DISABLED - Only build on version tags to save time
+# Uncomment if you want to build on every push
+
+# on:
+#   push:
+#     branches:
+#       - main
+#     paths:
+#       - 'counter_deck_flutter/**'
+#   pull_request:
+#     branches:
+#       - main
 
 jobs:
   build:
